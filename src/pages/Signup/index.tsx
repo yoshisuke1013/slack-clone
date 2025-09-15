@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useCurrentUserStore } from "../../modules/auth/current-user.state";
 import { authRepository } from "../../modules/auth/auth.repository";
 import "./auth.css";
 
@@ -7,6 +8,7 @@ function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { setCurrentUser } = useCurrentUserStore();
 
   const signup = async () => {
     try {
@@ -16,8 +18,8 @@ function Signup() {
         email,
         password
       );
-      console.log(user);
       localStorage.setItem("token", token);
+      setCurrentUser(user);
     } catch (error) {
       console.error("ユーザー登録に失敗しました", error);
     }

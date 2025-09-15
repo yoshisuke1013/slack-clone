@@ -1,18 +1,22 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
+import { useCurrentUserStore } from "../../modules/auth/current-user.state";
 import { authRepository } from "../../modules/auth/auth.repository";
 import "../Signup/auth.css";
 
 function Signin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { currentUser, setCurrentUser } = useCurrentUserStore();
+
+  if (currentUser != null) return <Navigate to="/" />;
 
   const signin = async () => {
     try {
       if (email == "" || password == "") return;
       const { user, token } = await authRepository.signin(email, password);
-      console.log(user);
       localStorage.setItem("token", token);
+      setCurrentUser(user);
     } catch (error) {
       console.error("ログインに失敗しました", error);
     }
