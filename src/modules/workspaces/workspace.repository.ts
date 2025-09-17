@@ -1,5 +1,5 @@
 import api from "../../lib/api";
-import { Workspace } from "../workspaces/workspace.entity";
+import { Workspace } from "./workspace.entity";
 
 export const workspaceRepository = {
   async find(): Promise<Workspace[]> {
