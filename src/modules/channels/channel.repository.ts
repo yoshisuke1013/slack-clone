@@ -14,4 +14,9 @@ export const channelRepository = {
     });
     return new Channel(result.data);
   },
+
+  async delete(channelId: string): Promise<boolean> {
+    await api.delete(`/channels/${channelId}`);
+    return true;
+  },
 };
