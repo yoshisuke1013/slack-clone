@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import { useCurrentUserStore } from "../../modules/auth/current-user.state";
 import type { Workspace } from "../../modules/workspaces/workspace.entity";
+import type { Channel } from "../../modules/channels/channel.entity";
 import { workspaceRepository } from "../../modules/workspaces/workspace.repository";
+import { channelRepository } from "../../modules/channels/channel.repository";
 import WorkspaceSelector from "./WorkspaceSelector";
 import Sidebar from "./Sidebar";
 import MainContent from "./MainContent";
@@ -12,10 +14,12 @@ function Home() {
   const { currentUser } = useCurrentUserStore();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const params = useParams();
-  const { workspaceId } = params;
+  const { workspaceId, channelId } = params;
   const selectedWorkspace = workspaces.find(
     (workspace) => workspace.id == workspaceId
   );
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const selectedChannel = channels.find((channel) => channel.id == channelId);
 
   const fetchWorkspaces = async () => {
     try {
@@ -26,9 +30,22 @@ function Home() {
     }
   };
 
+  const fetchChannels = async () => {
+    try {
+      const channels = await channelRepository.find(workspaceId!);
+      setChannels(channels);
+    } catch (error) {
+      console.error("チャンネルの取得に失敗しました", error);
+    }
+  };
+
   useEffect(() => {
     fetchWorkspaces();
   }, []);
+
+  useEffect(() => {
+    fetchChannels();
+  }, [workspaceId]);
 
   if (currentUser == null) return <Navigate to="/signin" />;
 
@@ -39,10 +56,15 @@ function Home() {
         setWorkspaces={setWorkspaces}
         selectedWorkspaceId={workspaceId}
       />
-      {selectedWorkspace != null ? (
+      {selectedWorkspace != null && selectedChannel != null ? (
         <>
-          <Sidebar selectedWorkspace={selectedWorkspace} />
-          <MainContent />
+          <Sidebar
+            selectedWorkspace={selectedWorkspace}
+            selectedChannelId={channelId!}
+            channels={channels}
+            setChannels={setChannels}
+          />
+          <MainContent selectedChannel={selectedChannel} />
         </>
       ) : (
         <div className="sidebar" />
