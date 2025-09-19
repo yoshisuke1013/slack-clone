@@ -1,11 +1,16 @@
+import { WorkspaceUser } from "../workspace-users/workspace-user.entity";
 export class User {
   id!: string;
   name!: string;
   email!: string;
   thumbnailUrl?: string;
+  workspaceUsers?: WorkspaceUser[];
 
   constructor(data: User) {
     Object.assign(this, data);
+    this.workspaceUsers = data.workspaceUsers?.map(
+      (workspaceUser) => new WorkspaceUser(workspaceUser)
+    );
   }
 
   get IconUrl() {
