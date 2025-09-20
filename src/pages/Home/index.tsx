@@ -11,6 +11,7 @@ import WorkspaceSelector from "./WorkspaceSelector";
 import Sidebar from "./Sidebar";
 import MainContent from "./MainContent";
 import "./Home.css";
+import { subscribe, unsubscribe } from "../../lib/api/socket";
 
 function Home() {
   const { currentUser } = useCurrentUserStore();
@@ -51,12 +52,24 @@ function Home() {
     }
   };
 
+  const handleNewMessage = (message: Message) => {
+    setMessages((messages) => [message, ...messages]);
+  };
+
+  const handleDeleteMessage = (messageId: string) => {
+    setMessages((messages) => messages.filter((msg) => msg.id !== messageId));
+  };
+
   useEffect(() => {
     fetchWorkspaces();
   }, []);
 
   useEffect(() => {
     fetchChannels();
+    subscribe(workspaceId!, handleNewMessage, handleDeleteMessage);
+    return () => {
+      unsubscribe(workspaceId!);
+    };
   }, [workspaceId]);
 
   useEffect(() => {
