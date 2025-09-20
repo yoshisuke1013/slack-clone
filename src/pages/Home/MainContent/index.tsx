@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCurrentUserStore } from "../../../modules/auth/current-user.state";
 import type { Channel } from "../../../modules/channels/channel.entity";
@@ -27,6 +27,7 @@ function MainContent(props: Props) {
   const navigate = useNavigate();
   const [content, setContent] = useState("");
   const { currentUser } = useCurrentUserStore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const groupMessagesByDate = () => {
     const messageMap = new Map<string, Message[]>();
@@ -56,6 +57,35 @@ function MainContent(props: Props) {
       setContent("");
     } catch (error) {
       console.error("メッセージの投稿に失敗しました", error);
+    }
+  };
+
+  const updateImage = async (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files == null || e.target.files[0] == null) return;
+    try {
+      const file = e.target.files[0];
+      const newMessage = await messageRepository.uploadImage(
+        selectedWorkspaceId,
+        selectedChannel.id,
+        file
+      );
+      console.log(newMessage);
+      setMessages([newMessage, ...messages]);
+    } catch (error) {
+      console.error("画像のアップロードに失敗しました", error);
+    }
+  };
+
+  const deleteMessage = async (message: Message) => {
+    try {
+      const confirmed = window.confirm(
+        "このメッセージを削除しますか？この操作は取り消せません"
+      );
+      if (!confirmed) return;
+      await messageRepository.delete(message.id);
+      setMessages(messages.filter((msg) => msg.id !== message.id));
+    } catch (error) {
+      console.error("メッセージの削除に失敗しました", error);
     }
   };
 
@@ -125,21 +155,35 @@ function MainContent(props: Props) {
                       <span className="timestamp">
                         {message.dateTimeString}
                       </span>
-                      <button
-                        className="message-delete-button"
-                        title="メッセージを削除"
-                      >
-                        <svg
-                          viewBox="0 0 24 24"
-                          width="16"
-                          height="16"
-                          fill="currentColor"
+                      {currentUser?.id == message.user.id && (
+                        <button
+                          className="message-delete-button"
+                          title="メッセージを削除"
+                          onClick={() => deleteMessage(message)}
                         >
-                          <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-                        </svg>
-                      </button>
+                          <svg
+                            viewBox="0 0 24 24"
+                            width="16"
+                            height="16"
+                            fill="currentColor"
+                          >
+                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                          </svg>
+                        </button>
+                      )}
                     </div>
                     <div className="message-text">{message.content}</div>
+                    {message.imageUrl != null && (
+                      <div className="message-image-container">
+                        <div className="message-image-wrapper">
+                          <img
+                            src={message.imageUrl}
+                            alt="Posted Image"
+                            className="msg-image"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -159,8 +203,17 @@ function MainContent(props: Props) {
             onChange={(e) => setContent(e.target.value)}
           />
           <div className="image-upload">
-            <input type="file" style={{ display: "none" }} accept="image/*" />
-            <button className="action-button">
+            <input
+              type="file"
+              style={{ display: "none" }}
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={updateImage}
+            />
+            <button
+              className="action-button"
+              onClick={() => fileInputRef.current?.click()}
+            >
               <svg
                 viewBox="0 0 20 20"
                 width="18"

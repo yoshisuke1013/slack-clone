@@ -17,4 +17,21 @@ export const messageRepository = {
     });
     return new Message(result.data);
   },
+
+  async uploadImage(
+    workspaceId: string,
+    channelId: string,
+    file: File
+  ): Promise<Message> {
+    const result = await api.postForm(
+      `/messages/${workspaceId}/${channelId}/image`,
+      { file }
+    );
+    return new Message(result.data);
+  },
+
+  async delete(messageId: string): Promise<boolean> {
+    await api.delete(`/messages/${messageId}`);
+    return true;
+  },
 };
