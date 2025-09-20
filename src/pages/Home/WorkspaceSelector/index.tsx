@@ -14,10 +14,14 @@ interface Props {
 
 function WorkspaceSelector(props: Props) {
   const { workspaces, setWorkspaces, selectedWorkspaceId } = props;
-  const { showCreateWorkspaceModal, setShowCreateWorkspaceModal } =
-    useUiStore();
+  const {
+    showCreateWorkspaceModal,
+    setShowCreateWorkspaceModal,
+    showProfileModal,
+    setShowProfileModal,
+  } = useUiStore();
   const navigate = useNavigate();
-  const { setCurrentUser } = useCurrentUserStore();
+  const { currentUser, setCurrentUser } = useCurrentUserStore();
 
   const createWorkspace = async (name: string) => {
     try {
@@ -59,11 +63,12 @@ function WorkspaceSelector(props: Props) {
         </div>
       </div>
       <div className="user-profile">
-        <div className={`avatar-img `}>
+        <div
+          className={`avatar-img `}
+          onClick={() => setShowProfileModal(true)}
+        >
           <img
-            src={
-              "https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png"
-            }
+            src={currentUser?.IconUrl}
             alt="Posted image"
             className="message-image"
           />
@@ -89,7 +94,7 @@ function WorkspaceSelector(props: Props) {
       {showCreateWorkspaceModal && (
         <CreateWorkspaceModal onSubmit={createWorkspace} allowCancel={true} />
       )}
-      {/* <ProfileModal /> */}
+      {showProfileModal && <ProfileModal />}
     </div>
   );
 }
