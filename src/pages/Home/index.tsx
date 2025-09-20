@@ -3,8 +3,10 @@ import { Navigate, useParams } from "react-router-dom";
 import { useCurrentUserStore } from "../../modules/auth/current-user.state";
 import type { Workspace } from "../../modules/workspaces/workspace.entity";
 import type { Channel } from "../../modules/channels/channel.entity";
+import type { Message } from "../../modules/messages/message.entity";
 import { workspaceRepository } from "../../modules/workspaces/workspace.repository";
 import { channelRepository } from "../../modules/channels/channel.repository";
+import { messageRepository } from "../../modules/messages/message.repository";
 import WorkspaceSelector from "./WorkspaceSelector";
 import Sidebar from "./Sidebar";
 import MainContent from "./MainContent";
@@ -20,6 +22,7 @@ function Home() {
   );
   const [channels, setChannels] = useState<Channel[]>([]);
   const selectedChannel = channels.find((channel) => channel.id == channelId);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   const fetchWorkspaces = async () => {
     try {
@@ -39,6 +42,15 @@ function Home() {
     }
   };
 
+  const fetchMessages = async () => {
+    try {
+      const messages = await messageRepository.find(workspaceId!, channelId!);
+      setMessages(messages);
+    } catch (error) {
+      console.error("メッセージの取得に失敗しました", error);
+    }
+  };
+
   useEffect(() => {
     fetchWorkspaces();
   }, []);
@@ -46,6 +58,10 @@ function Home() {
   useEffect(() => {
     fetchChannels();
   }, [workspaceId]);
+
+  useEffect(() => {
+    fetchMessages();
+  }, [channelId]);
 
   if (currentUser == null) return <Navigate to="/signin" />;
 
@@ -69,6 +85,8 @@ function Home() {
             channels={channels}
             setChannels={setChannels}
             selectedWorkspaceId={selectedWorkspace.id}
+            messages={messages}
+            setMessages={setMessages}
           />
         </>
       ) : (
